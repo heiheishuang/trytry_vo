@@ -31,7 +31,7 @@ Status Frontend::getStatus() const {
 
 Frontend::~Frontend() = default;
 
-bool Frontend::addFrame(const Frame& frame) {
+bool Frontend::addFrame(const Frame &frame) {
 
     current_frame_ptr = std::make_shared<Frame>(frame);
 
@@ -98,38 +98,38 @@ Frontend::Frontend() {
 }
 
 int Frontend::estimateCurrentPose() {
-    
+
     this->current_frame_ptr->computeORB();
 
     //TODO 这里还有一个参数需要放到配置文件中
     auto matches = current_frame_ptr->matchFrames(last_frame_ptr, 0.4);
-    
+
     // 我先写一个完整的流程
     // 然后再去考虑匹配不好的步骤
-    
+
     std::vector<Eigen::Vector3d> point_current;
     std::vector<Eigen::Vector3d> point_last;
-    
-    for (auto & match : *matches) {
+
+    for (auto &match : *matches) {
         point_current.push_back(current_frame_ptr->getWorldPoint(match.queryIdx));
         point_last.push_back(last_frame_ptr->getWorldPoint(match.queryIdx));
     }
-    
+
     Eigen::Matrix3d R;
     Eigen::Vector3d t;
-    
+    estimateRigid3D(point_last, point_current, R, t);
+
     std::vector<int> inlines;
     this->estimateRT(point_last, point_current, R, t);
     last_frame_ptr = current_frame_ptr;
     Eigen::Matrix4f calculate_tf = Eigen::Matrix4f::Identity();
-    if (t.norm() < 0.15)
-    {
+    if (t.norm() < 0.15) {
         calculate_tf.block<3, 3>(0, 0) = R;
         calculate_tf.block<3, 1>(0, 3) = t;
     }
     this->tfs.emplace_back(calculate_tf);
 
-    return inlines.size();
+    return matches->size();
 }
 
 void Frontend::setCamera(const Camera &config) {
@@ -138,7 +138,133 @@ void Frontend::setCamera(const Camera &config) {
     this->camera = config;
 }
 
-bool Frontend::estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                          Eigen::Matrix3d &R, Eigen::Vector3d &t) {
+bool Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
+                          std::vector<Eigen::Vector3d> current,
+                          Eigen::Matrix3d &R,
+                          Eigen::Vector3d &t) {
+    srand(time(nullptr));
+    std::vector<int> inlines;
+
+    if (last.size() < 10)
+        return false;
+    int max_iters = 1000;
+    double error = 0.01;
+    for (int i = 0; i < max_iters; i++) {
+        int i1 = rand() % last.size();
+        int i2 = rand() % last.size();
+        int i3 = rand() % last.size();
+        int i4 = rand() % last.size();
+        int i5 = rand() % last.size();
+        int i6 = rand() % last.size();
+        int i7 = rand() % last.size();
+        int i8 = rand() % last.size();
+        int i9 = rand() % last.size();
+        int i10 = rand() % last.size();
+
+        std::vector<Eigen::Vector3d> part1, part2;
+        part1.emplace_back(last[i1]);
+        part1.emplace_back(last[i2]);
+        part1.emplace_back(last[i3]);
+        part1.emplace_back(last[i4]);
+        part1.emplace_back(last[i5]);
+        part1.emplace_back(last[i6]);
+        part1.emplace_back(last[i7]);
+        part1.emplace_back(last[i8]);
+        part1.emplace_back(last[i9]);
+        part1.emplace_back(last[i10]);
+
+        part2.emplace_back(current[i1]);
+        part2.emplace_back(current[i2]);
+        part2.emplace_back(current[i3]);
+        part2.emplace_back(current[i4]);
+        part2.emplace_back(current[i5]);
+        part2.emplace_back(current[i6]);
+        part2.emplace_back(current[i7]);
+        part2.emplace_back(current[i8]);
+        part2.emplace_back(current[i9]);
+        part2.emplace_back(current[i10]);
+
+        estimateRigid3D(part1, part2, R, t);
+        if (estimateReprojection(part1, part2, R, t, {}) <= error) {
+            inlines.resize(last.size(), 0);
+            part1.clear();
+            part2.clear();
+            for (int j = 0; j < last.size(); j++)
+                if ((R * last[j] + t - current[j]).norm() <= error) {
+                    inlines[j] = 1;
+                    part1.emplace_back(last[j]);
+                    part2.emplace_back(current[j]);
+                }
+            if (part1.size() < 10)
+                continue;
+            estimateRigid3D(part1, part2, R, t);
+            if (estimateReprojection(last, current, R, t, inlines) <= error)
+                return true;
+        }
+    }
+    R = Eigen::Matrix3f::Identity();
+    t = Eigen::Vector3f::Zero();
     return false;
 }
+
+double Frontend::estimateReprojection(std::vector<Eigen::Vector3d> &last,
+                                      std::vector<Eigen::Vector3d> &current,
+                                      Eigen::Matrix3d &R,
+                                      Eigen::Vector3d &t,
+                                      std::vector<int> inlines) {
+    if (inlines.empty()) {
+        double re = 0;
+        for (int i = 0; i < last.size(); i++)
+            re += (R * last[i] + t - current[i]).norm();
+        re /= last.size();
+        return re;
+    } else {
+        double re = 0;
+        int j = 0;
+        for (int i = 0; i < last.size(); i++)
+            if (inlines[i]) {
+                re += (R * last[i] + t - current[i]).norm();
+                j++;
+            }
+        re /= j;
+        return re;
+    }
+}
+
+void Frontend::estimateRigid3D(std::vector<Eigen::Vector3d> &last,
+                               std::vector<Eigen::Vector3d> &current,
+                               Eigen::Matrix3d &R, Eigen::Vector3d &t) {
+    std::vector<Eigen::Vector3d> q1, q2;
+    Eigen::Vector3d c1 = Eigen::Vector3d::Zero();
+    Eigen::Vector3d c2 = Eigen::Vector3f::Zero();
+    size_t n = last.size();
+    for (size_t i = 0; i < n; i++) {
+        c1 += last[i];
+        c2 += current[i];
+    }
+    c1 /= (int) n;
+    c2 /= (int) n;
+
+    for (size_t i = 0; i < n; i++) {
+        q1.emplace_back(last[i] - c1);
+        q2.emplace_back(current[i] - c2);
+    }
+
+    Eigen::Matrix3f W = Eigen::Matrix3f::Zero();
+    for (size_t i = 0; i < n; i++)
+        W += q1[i] * q2[i].transpose();
+
+    Eigen::JacobiSVD<Eigen::MatrixXf>
+            svd(W, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    Eigen::Matrix3f U = svd.matrixU();
+    Eigen::Matrix3f V = svd.matrixV();
+    R = U * V.transpose();
+    if (R.determinant() < 0.5) {
+        // R = Eigen::Matrix3f::Identity();
+        // t = Eigen::Vector3f::Zero();
+        R = -R;
+        //return;
+    }
+    t = c1 - R * c2;
+}
+

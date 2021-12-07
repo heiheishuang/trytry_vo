@@ -36,8 +36,16 @@ public:
 
     int estimateCurrentPose();
 
-    bool estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+    static bool estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
                     Eigen::Matrix3d &R, Eigen::Vector3d &t);
+
+    static double estimateReprojection(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                                Eigen::Matrix3d &R, Eigen::Vector3d &t,
+                                std::vector<int> inlines);
+
+    static void estimateRigid3D(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                                Eigen::Matrix3d &R, Eigen::Vector3d &t);
+
 
     const std::vector<Eigen::Matrix4d> &getTf() const;
 
