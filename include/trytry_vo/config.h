@@ -12,10 +12,12 @@ class Config {
 public:
     static Config *getInstance();
 
-    static void setFileName(const std::string& path);
+    void setFileName(const std::string& path);
 
     template<typename T>
-    T getData(const char *name) const;
+    static T getData(const char *name) {
+        return T (Config::getInstance()->file_storage[name]);
+    }
 
     virtual ~Config();
 
@@ -30,7 +32,7 @@ private:
     static boost::mutex mutex_instance;
 
     cv::FileStorage file_storage;
-    static std::string file_name;
+    std::string file_name;
 
 
 };

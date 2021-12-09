@@ -58,12 +58,13 @@ bool Frontend::addFrame(const Frame &frame) {
 bool Frontend::Init() {
 
     last_frame_ptr = current_frame_ptr;
-    this->tfs.emplace_back(Eigen::Matrix4f::Identity());
+    this->tfs.emplace_back(Eigen::Matrix4d::Identity());
+    current_frame_ptr->computeORB();
 
 
     this->status = Status::TRACKING_GOOD;
 
-    std::cout << "Init Successfully!!!" << std::endl;
+    std::cout << "Frontend Init Successfully!!!" << std::endl;
     return true;
 }
 
@@ -92,8 +93,8 @@ bool Frontend::Reset() {
 Frontend::Frontend() {
     this->status = Status::INIT;
 
-    this->interiors_threshold_bad = Config::getInstance()->getData<int>("interiors_threshold_bad");
-    this->interiors_threshold_lost = Config::getInstance()->getData<int>("interiors_threshold_lost");
+    this->interiors_threshold_bad = Config::getData<int>("interiors_threshold_bad");
+    this->interiors_threshold_lost = Config::getData<int>("interiors_threshold_lost");
 
 }
 
@@ -122,7 +123,7 @@ int Frontend::estimateCurrentPose() {
     std::vector<int> inlines;
     this->estimateRT(point_last, point_current, R, t);
     last_frame_ptr = current_frame_ptr;
-    Eigen::Matrix4f calculate_tf = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
     if (t.norm() < 0.15) {
         calculate_tf.block<3, 3>(0, 0) = R;
         calculate_tf.block<3, 1>(0, 3) = t;
@@ -202,8 +203,8 @@ bool Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
                 return true;
         }
     }
-    R = Eigen::Matrix3f::Identity();
-    t = Eigen::Vector3f::Zero();
+    R = Eigen::Matrix3d::Identity();
+    t = Eigen::Vector3d::Zero();
     return false;
 }
 
@@ -236,7 +237,7 @@ void Frontend::estimateRigid3D(std::vector<Eigen::Vector3d> &last,
                                Eigen::Matrix3d &R, Eigen::Vector3d &t) {
     std::vector<Eigen::Vector3d> q1, q2;
     Eigen::Vector3d c1 = Eigen::Vector3d::Zero();
-    Eigen::Vector3d c2 = Eigen::Vector3f::Zero();
+    Eigen::Vector3d c2 = Eigen::Vector3d::Zero();
     size_t n = last.size();
     for (size_t i = 0; i < n; i++) {
         c1 += last[i];
@@ -250,18 +251,18 @@ void Frontend::estimateRigid3D(std::vector<Eigen::Vector3d> &last,
         q2.emplace_back(current[i] - c2);
     }
 
-    Eigen::Matrix3f W = Eigen::Matrix3f::Zero();
+    Eigen::Matrix3d W = Eigen::Matrix3d::Zero();
     for (size_t i = 0; i < n; i++)
         W += q1[i] * q2[i].transpose();
 
-    Eigen::JacobiSVD<Eigen::MatrixXf>
+    Eigen::JacobiSVD<Eigen::MatrixXd>
             svd(W, Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Eigen::Matrix3f U = svd.matrixU();
-    Eigen::Matrix3f V = svd.matrixV();
+    Eigen::Matrix3d U = svd.matrixU();
+    Eigen::Matrix3d V = svd.matrixV();
     R = U * V.transpose();
     if (R.determinant() < 0.5) {
-        // R = Eigen::Matrix3f::Identity();
-        // t = Eigen::Vector3f::Zero();
+        // R = Eigen::Matrix3d::Identity();
+        // t = Eigen::Vector3d::Zero();
         R = -R;
         //return;
     }

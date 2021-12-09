@@ -11,8 +11,10 @@ Config::~Config() {
 }
 
 Config::Config() {
-    this->file_storage = cv::FileStorage(this->file_name, cv::FileStorage::READ);
+//    this->file_storage = cv::FileStorage(Config::file_name, cv::FileStorage::READ);
 }
+Config* Config::instance = nullptr;
+boost::mutex Config::mutex_instance;
 
 Config* Config::getInstance() {
 
@@ -37,11 +39,8 @@ void Config::setFileName(const std::string& path) {
 
     file_name = path;
 
-}
+    this->file_storage = cv::FileStorage(Config::file_name, cv::FileStorage::READ);
 
-template<typename T>
-T Config::getData(const char *name) const {
-    return static_cast<T>(file_storage[name]);
 }
 
 

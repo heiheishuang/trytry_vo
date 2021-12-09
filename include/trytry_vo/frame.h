@@ -29,6 +29,10 @@ public:
     Eigen::Vector3d  getWorldPoint(int index);
 
     // Generator
+    void setColorImage(const cv::Mat &colorImage);
+
+    void setDepthImage(const cv::Mat &depthImage);
+
     const cv::Mat &getColorImage() const;
 
     const cv::Mat &getDepthImage() const;
@@ -40,10 +44,6 @@ public:
     const Eigen::Vector3d &getPose() const;
 
     void setPose(const Eigen::Vector3d &pose);
-
-    void setColorImage(const cv::Mat &colorImage);
-
-    void setDepthImage(const cv::Mat &depthImage);
 
     void setLeftImage(const cv::Mat &leftImage);
 

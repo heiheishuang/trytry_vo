@@ -5,7 +5,7 @@
 #include "trytry_vo/vo.h"
 
 int main(int argc, char *argv[]) {
-    ros::init(argc, argv, "try_vo");
+//    ros::init(argc, argv, "try_vo");
 
     Vo vo;
 

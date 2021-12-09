@@ -33,7 +33,7 @@ private:
 
     Frontend frontend;
 
-    std::shared_ptr<Images> images_ptr;
+    Images images;
 
     Camera camera;
 

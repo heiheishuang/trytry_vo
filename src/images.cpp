@@ -30,15 +30,15 @@ void Images::loadMonoImages(std::string path) {
 
 }
 
-void Images::loadDepthImages(const std::string& path) {
+void Images::loadDepthImages(const std::string &path) {
+
+    this->path = path;
 
     std::ifstream file_in(path + "associations.txt");
-    while (!file_in.eof())
-    {
+    while (!file_in.eof()) {
         std::string s;
         getline(file_in, s);
-        if (!s.empty())
-        {
+        if (!s.empty()) {
             std::stringstream ss;
             ss << s;
             double t;
@@ -81,7 +81,7 @@ Frame Images::getNextFrame() {
     cv::Mat depth;
     cv::Mat rgb;
     depth = cv::imread(path + this->filename_image_depth[current_id], CV_LOAD_IMAGE_UNCHANGED);
-    rgb = cv::imread(path + this->filename_image_mono[current_id][current_id], CV_LOAD_IMAGE_UNCHANGED);
+    rgb = cv::imread(path + this->filename_image_mono[current_id], CV_LOAD_IMAGE_UNCHANGED);
 
     new_frame.setColorImage(rgb);
     new_frame.setDepthImage(depth);

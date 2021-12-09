@@ -10,16 +10,16 @@ Vo::~Vo() = default;
 
 bool Vo::Init() {
 
-    Config::setFileName("/home/heihei/slam_ws/src/my_slam/TUM1.yaml");
+    Config::getInstance()->setFileName("/home/heihei/slam_ws/src/my_slam/TUM1.yaml");
 
     std::string path = "/home/heihei/Downloads/rgbd_dataset_freiburg1_desk/";
 
-    this->images_ptr->loadDepthImages(path);
+    this->images.loadDepthImages(path);
 
-    auto fx = Config::getInstance()->getData<double>("Camera.fx");
-    auto fy = Config::getInstance()->getData<double>("Camera.fy");
-    auto cx = Config::getInstance()->getData<double>("Camera.cx");
-    auto cy = Config::getInstance()->getData<double>("Camera.cy");
+    auto fx = Config::getData<double>("Camera.fx");
+    auto fy = Config::getData<double>("Camera.fy");
+    auto cx = Config::getData<double>("Camera.cx");
+    auto cy = Config::getData<double>("Camera.cy");
     this->camera = Camera(fx, fy, cx, cy);
 
     frontend.setCamera(this->camera);
@@ -42,7 +42,7 @@ bool Vo::Run() {
 }
 
 bool Vo::Step() {
-    Frame frame = this->images_ptr->getNextFrame();
+    Frame frame = this->images.getNextFrame();
     // TODO 我需要找一个更好的位置来set camera
     // 首先是camera是否需要变成一个单例模式
     // 同时我也认为camera类可以拥有更多的属性，然后每一个frame都有只有一个camera
