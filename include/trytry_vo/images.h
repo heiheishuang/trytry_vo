@@ -27,7 +27,7 @@ public:
 
     void getNextDepthRGBImage(cv::Mat &depth_image, cv::Mat &rgb_image);
 
-    Frame getNextFrame();
+    bool getNextFrame(Frame &new_frame);
 
 
     const std::vector<std::string> &getFilenameImageDepth() const;

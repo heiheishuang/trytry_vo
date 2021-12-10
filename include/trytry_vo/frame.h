@@ -14,6 +14,7 @@
 class Frame {
 
 public:
+    Frame();
 
     explicit Frame(int id);
 
@@ -75,10 +76,10 @@ private:
 
     Eigen::Vector3d pose;
 
-    double min_depth;
-    double max_depth;
-    double depth_factor;
-    double key_frame_num;
+    double min_depth{};
+    double max_depth{};
+    double depth_factor{};
+    double key_frame_num{};
 
 
 

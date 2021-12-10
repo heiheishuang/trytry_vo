@@ -31,7 +31,7 @@ Status Frontend::getStatus() const {
 
 Frontend::~Frontend() = default;
 
-bool Frontend::addFrame(const Frame &frame) {
+bool Frontend:: addFrame(const Frame &frame) {
 
     current_frame_ptr = std::make_shared<Frame>(frame);
 
@@ -118,7 +118,7 @@ int Frontend::estimateCurrentPose() {
 
     Eigen::Matrix3d R;
     Eigen::Vector3d t;
-    estimateRigid3D(point_last, point_current, R, t);
+//    estimateRigid3D(point_last, point_current, R, t);
 
     std::vector<int> inlines;
     this->estimateRT(point_last, point_current, R, t);

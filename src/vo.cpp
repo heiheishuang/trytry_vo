@@ -10,7 +10,7 @@ Vo::~Vo() = default;
 
 bool Vo::Init() {
 
-    Config::getInstance()->setFileName("/home/heihei/slam_ws/src/my_slam/TUM1.yaml");
+    Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
 
     std::string path = "/home/heihei/Downloads/rgbd_dataset_freiburg1_desk/";
 
@@ -42,7 +42,12 @@ bool Vo::Run() {
 }
 
 bool Vo::Step() {
-    Frame frame = this->images.getNextFrame();
+    Frame frame;
+
+   if (!this->images.getNextFrame(frame)) {
+        return false;
+    }
+
     // TODO 我需要找一个更好的位置来set camera
     // 首先是camera是否需要变成一个单例模式
     // 同时我也认为camera类可以拥有更多的属性，然后每一个frame都有只有一个camera
@@ -53,7 +58,7 @@ bool Vo::Step() {
     if (frontend.addFrame(frame)) {
         auto t2 = boost::chrono::steady_clock::now();
         auto time_used = boost::chrono::duration_cast<boost::chrono::duration<double>>(t2 - t1);
-        std::cout << "VO cost time: " << time_used.count() << " seconds.";
+        std::cout << "VO cost time: " << time_used.count() << " seconds." << std::endl;
         return true;
     } else {
         return false;

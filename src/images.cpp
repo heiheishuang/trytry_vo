@@ -74,22 +74,26 @@ void Images::getNextDepthRGBImage(cv::Mat &depth_image, cv::Mat &rgb_image) {
 
 }
 
-Frame Images::getNextFrame() {
+bool Images::getNextFrame(Frame &new_frame) {
 
-    Frame new_frame(current_id);
+    if (current_id < this->filename_image_mono.size()) {
+        new_frame.setId(current_id);
+        std::cout << "current id" << current_id;
 
-    cv::Mat depth;
-    cv::Mat rgb;
-    depth = cv::imread(path + this->filename_image_depth[current_id], CV_LOAD_IMAGE_UNCHANGED);
-    rgb = cv::imread(path + this->filename_image_mono[current_id], CV_LOAD_IMAGE_UNCHANGED);
+        cv::Mat depth;
+        cv::Mat rgb;
+        depth = cv::imread(path + this->filename_image_depth[current_id], CV_LOAD_IMAGE_UNCHANGED);
+        rgb = cv::imread(path + this->filename_image_mono[current_id], CV_LOAD_IMAGE_UNCHANGED);
 
-    new_frame.setColorImage(rgb);
-    new_frame.setDepthImage(depth);
-    new_frame.setTimeStamp(this->timestamps[current_id]);
+        new_frame.setColorImage(rgb);
+        new_frame.setDepthImage(depth);
+        new_frame.setTimeStamp(this->timestamps[current_id]);
 
-    current_id++;
-
-    return new_frame;
+        current_id++;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 Images::Images() = default;

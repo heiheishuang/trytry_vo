@@ -59,7 +59,6 @@ bool Frame::computeORB() {
 
 Frame::Frame(int id) {
     this->id = id;
-
     this->min_depth = Config::getData<double>("min_depth");
     this->max_depth = Config::getData<double>("max_depth");
     this->depth_factor = Config::getData<double>("depth_factor");
@@ -133,4 +132,11 @@ void Frame::setColorImage(const cv::Mat &colorImage) {
 
 void Frame::setDepthImage(const cv::Mat &depthImage) {
     depth_image = depthImage;
+}
+
+Frame::Frame() {
+    this->min_depth = Config::getData<double>("min_depth");
+    this->max_depth = Config::getData<double>("max_depth");
+    this->depth_factor = Config::getData<double>("depth_factor");
+    this->key_frame_num = Config::getData<int>("key_frame_num");
 }
