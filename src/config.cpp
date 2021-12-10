@@ -13,10 +13,11 @@ Config::~Config() {
 Config::Config() {
 //    this->file_storage = cv::FileStorage(Config::file_name, cv::FileStorage::READ);
 }
-Config* Config::instance = nullptr;
+
+Config *Config::instance = nullptr;
 boost::mutex Config::mutex_instance;
 
-Config* Config::getInstance() {
+Config *Config::getInstance() {
 
     if (instance == nullptr) {
         boost::unique_lock<boost::mutex> uq_lock_instance(mutex_instance);
@@ -35,7 +36,7 @@ Config &Config::operator=(const Config &) {
 
 }
 
-void Config::setFileName(const std::string& path) {
+void Config::setFileName(const std::string &path) {
 
     file_name = path;
 

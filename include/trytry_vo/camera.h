@@ -13,13 +13,13 @@ public:
 
     Camera();
 
-    Camera(const Camera& camera);
+    Camera(const Camera &camera);
 
     explicit Camera(double fx, double fy, double cx, double cy);
 
     Eigen::Vector3d pix2World(Eigen::Vector2d pix_pos, double depth);
 
-    Eigen::Vector2d world2Pix(const Eigen::Vector3d& world_pos);
+    Eigen::Vector2d world2Pix(const Eigen::Vector3d &world_pos);
 
 
 private:

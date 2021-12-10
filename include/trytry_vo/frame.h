@@ -11,6 +11,7 @@
 #include <memory>
 #include "trytry_vo/camera.h"
 #include "trytry_vo/config.h"
+
 class Frame {
 
 public:
@@ -25,11 +26,11 @@ public:
 
     double getDepthValue(int x, int y);
 
-    Eigen::Vector3d  getWorldPoint(int x, int y);
+    Eigen::Vector3d getWorldPoint(int x, int y);
 
-    Eigen::Vector3d  getWorldPoint(int index);
+    Eigen::Vector3d getWorldPoint(int index);
 
-    // Generator
+    // Generate
     void setColorImage(const cv::Mat &colorImage);
 
     void setDepthImage(const cv::Mat &depthImage);
@@ -80,8 +81,6 @@ private:
     double max_depth{};
     double depth_factor{};
     double key_frame_num{};
-
-
 
 };
 

@@ -9,11 +9,11 @@
 Camera::Camera(double fx, double fy, double cx, double cy) {
 
     this->K << fx, 0.0, cx,
-                0.0, fy, cy,
-                0.0, 0., 1.0;
+            0.0, fy, cy,
+            0.0, 0., 1.0;
 }
 
-Eigen::Vector2d Camera::world2Pix(const Eigen::Vector3d& world_pos) {
+Eigen::Vector2d Camera::world2Pix(const Eigen::Vector3d &world_pos) {
     Eigen::Vector3d temp;
 
     temp = K * world_pos;

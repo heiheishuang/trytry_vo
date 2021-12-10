@@ -12,11 +12,11 @@ class Config {
 public:
     static Config *getInstance();
 
-    void setFileName(const std::string& path);
+    void setFileName(const std::string &path);
 
     template<typename T>
     static T getData(const char *name) {
-        return T (Config::getInstance()->file_storage[name]);
+        return T(Config::getInstance()->file_storage[name]);
     }
 
     virtual ~Config();

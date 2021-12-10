@@ -16,10 +16,10 @@ bool Vo::Init() {
 
     this->images.loadDepthImages(path);
 
-    auto fx = Config::getData<double>("Camera.fx");
-    auto fy = Config::getData<double>("Camera.fy");
-    auto cx = Config::getData<double>("Camera.cx");
-    auto cy = Config::getData<double>("Camera.cy");
+    auto fx = Config::getData<double>("camera_fx");
+    auto fy = Config::getData<double>("camera_fy");
+    auto cx = Config::getData<double>("camera_cx");
+    auto cy = Config::getData<double>("camera_cy");
     this->camera = Camera(fx, fy, cx, cy);
 
     frontend.setCamera(this->camera);

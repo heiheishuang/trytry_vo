@@ -40,8 +40,7 @@ bool Frame::computeORB() {
     detector->detectAndCompute(color_image, cv::Mat(), this->key_points, this->descriptor);
     std::vector<cv::KeyPoint> tKeyPts;
     cv::Mat tDesptors;
-    for (size_t i = 0; i < key_points.size(); i++)
-    {
+    for (size_t i = 0; i < key_points.size(); i++) {
         double tempDepth = getDepthValue(key_points[i].pt.x, key_points[i].pt.y);
         if (tempDepth < min_depth || tempDepth > max_depth)
             continue;

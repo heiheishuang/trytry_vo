@@ -29,6 +29,7 @@ public:
 
     bool getNextFrame(Frame &new_frame);
 
+    // Generate
 
     const std::vector<std::string> &getFilenameImageDepth() const;
 
