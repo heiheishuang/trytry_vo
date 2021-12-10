@@ -37,23 +37,21 @@ void Frame::setTimeStamp(double timeStamp) {
 bool Frame::computeORB() {
     //默认的参数，暂时不管，其实可以从config读入
     cv::Ptr<cv::ORB> detector = cv::ORB::create();
-    detector->detectAndCompute(color_image, cv::Mat(), this->key_points, this->descriptor);
-    std::vector<cv::KeyPoint> tKeyPts;
-    cv::Mat tDesptors;
-    for (size_t i = 0; i < key_points.size(); i++) {
-        double tempDepth = getDepthValue(key_points[i].pt.x, key_points[i].pt.y);
-        if (tempDepth < min_depth || tempDepth > max_depth)
+    std::vector<cv::KeyPoint> temp_key_points;
+    cv::Mat temp_descriptor;
+    detector->detectAndCompute(this->color_image, cv::Mat(), temp_key_points, temp_descriptor);
+    for (size_t i = 0; i < temp_key_points.size(); i++) {
+        double temp_depth = getDepthValue((int) temp_key_points.at(i).pt.x, (int) temp_key_points.at(i).pt.y);
+        if (temp_depth < this->min_depth || temp_depth > this->max_depth) {
             continue;
-        Eigen::Vector3d worldPt = camera.pix2World(
-                Eigen::Vector2d(key_points[i].pt.x, key_points[i].pt.y), tempDepth);
+        }
+        Eigen::Vector3d world_point = this->camera.pix2World(
+                Eigen::Vector2d(temp_key_points.at(i).pt.x, temp_key_points.at(i).pt.y), temp_depth);
 
-        //把点筛选一遍
-        tKeyPts.push_back(key_points[i]);
-        tDesptors.push_back(descriptor.row(i));
-        world_points.emplace_back(worldPt);
+        this->key_points.push_back(temp_key_points.at(i));
+        this->descriptor.push_back(temp_descriptor.row((int) i));
+        this->world_points.push_back(world_point);
     }
-    key_points = tKeyPts;
-    descriptor = tDesptors;
 }
 
 Frame::Frame(int id) {
@@ -71,18 +69,19 @@ void Frame::setId(int id) {
 std::shared_ptr<std::vector<cv::DMatch>> Frame::matchFrames(std::shared_ptr<Frame> &f, double eta) {
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::makePtr<cv::FlannBasedMatcher>(
             cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2));
+    // TODO 需要将参数进入配置文件
     std::shared_ptr<std::vector<cv::DMatch>> matches = std::make_shared<std::vector<cv::DMatch>>();
 
-    matcher->match(descriptor, f->descriptor, *matches);
+    matcher->match(this->descriptor, f->descriptor, *matches);
 
     std::shared_ptr<std::vector<cv::DMatch>> good_matches = std::make_shared<std::vector<cv::DMatch>>();
     double max_distance = 0;
-    for (unsigned int i = 0; i < matches->size(); ++i) {
-        max_distance = std::max(max_distance, (double) (*matches)[i].distance);
+    for (int i = 0; i < matches->size(); ++i) {
+        max_distance = std::max(max_distance, (double) (*matches).at(i).distance);
     }
-    for (unsigned int i = 0; i < matches->size(); ++i) {
-        if ((*matches)[i].distance < max_distance * eta)
-            good_matches->push_back((*matches)[i]);
+    for (int i = 0; i < matches->size(); ++i) {
+        if ((*matches).at(i).distance < max_distance * eta)
+            good_matches->push_back((*matches).at(i));
     }
 
     return good_matches;
@@ -96,7 +95,7 @@ double Frame::getDepthValue(int x, int y) {
     double value = this->depth_image.at<double>(y, x);
     double depth = value / this->depth_factor;
 
-    if (depth < this->min_depth or depth > max_depth) {
+    if (depth < this->min_depth or depth > this->max_depth) {
         return -1;
     }
 

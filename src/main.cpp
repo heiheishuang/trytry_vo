@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
 
     vo.Run();
 
-
     std::cout << "Vo Stop! " << std::endl;
+    std::cout << "heihei successfully!!! " << std::endl;
 
     return 0;
 

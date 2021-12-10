@@ -31,7 +31,7 @@ Status Frontend::getStatus() const {
 
 Frontend::~Frontend() = default;
 
-bool Frontend:: addFrame(const Frame &frame) {
+bool Frontend::addFrame(const Frame &frame) {
 
     current_frame_ptr = std::make_shared<Frame>(frame);
 
@@ -50,7 +50,6 @@ bool Frontend:: addFrame(const Frame &frame) {
     }
 
     last_frame_ptr = current_frame_ptr;
-
 
     return true;
 }
@@ -130,7 +129,7 @@ int Frontend::estimateCurrentPose() {
     }
     this->tfs.emplace_back(calculate_tf);
 
-    return matches->size();
+    return (int) matches->size();
 }
 
 void Frontend::setCamera(const Camera &config) {
@@ -146,6 +145,7 @@ bool Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
     srand(time(nullptr));
     std::vector<int> inlines;
 
+    // TODO 参数需要调一下
     if (last.size() < 10)
         return false;
     int max_iters = 1000;
@@ -196,11 +196,13 @@ bool Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
                     part1.emplace_back(last[j]);
                     part2.emplace_back(current[j]);
                 }
-            if (part1.size() < 10)
+            if (part1.size() < 10) {
                 continue;
+            }
             estimateRigid3D(part1, part2, R, t);
-            if (estimateReprojection(last, current, R, t, inlines) <= error)
+            if (estimateReprojection(last, current, R, t, inlines) <= error) {
                 return true;
+            }
         }
     }
     R = Eigen::Matrix3d::Identity();
@@ -214,21 +216,22 @@ double Frontend::estimateReprojection(std::vector<Eigen::Vector3d> &last,
                                       Eigen::Vector3d &t,
                                       std::vector<int> inlines) {
     if (inlines.empty()) {
-        double re = 0;
-        for (int i = 0; i < last.size(); i++)
-            re += (R * last[i] + t - current[i]).norm();
-        re /= last.size();
-        return re;
+        double reprojection_error = 0;
+        for (int i = 0; i < last.size(); i++) {
+            reprojection_error += (R * last[i] + t - current[i]).norm();
+        }
+        reprojection_error /= (int) last.size();
+        return reprojection_error;
     } else {
-        double re = 0;
-        int j = 0;
+        double reprojection_error = 0;
+        int count = 0;
         for (int i = 0; i < last.size(); i++)
             if (inlines[i]) {
-                re += (R * last[i] + t - current[i]).norm();
-                j++;
+                reprojection_error += (R * last[i] + t - current[i]).norm();
+                count++;
             }
-        re /= j;
-        return re;
+        reprojection_error /= count;
+        return reprojection_error;
     }
 }
 

@@ -78,7 +78,7 @@ bool Images::getNextFrame(Frame &new_frame) {
 
     if (current_id < this->filename_image_mono.size()) {
         new_frame.setId(current_id);
-        std::cout << "current id" << current_id;
+        std::cout << "current id " << current_id << "  ";
 
         cv::Mat depth;
         cv::Mat rgb;
