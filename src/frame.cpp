@@ -69,7 +69,7 @@ void Frame::setId(int id) {
 std::shared_ptr<std::vector<cv::DMatch>> Frame::matchFrames(std::shared_ptr<Frame> &f, double eta) {
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::makePtr<cv::FlannBasedMatcher>(
             cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2));
-    // TODO 需要将参数进入配置文件
+
     std::shared_ptr<std::vector<cv::DMatch>> matches = std::make_shared<std::vector<cv::DMatch>>();
 
     matcher->match(this->descriptor, f->descriptor, *matches);

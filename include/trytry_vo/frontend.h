@@ -37,8 +37,8 @@ public:
     int estimateCurrentPose();
 
     // Return inlines
-    static int estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                          Eigen::Matrix3d &R, Eigen::Vector3d &t);
+    int estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+                   Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
     static double estimateReprojection(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
                                        Eigen::Matrix3d &R, Eigen::Vector3d &t);
@@ -70,15 +70,20 @@ private:
 
     Status status{};
 
-    int interiors_threshold_bad;
-    int interiors_threshold_lost;
-    int match_size_threshold;
+    int interiors_threshold_bad{};
+    int interiors_threshold_lost{};
+    int match_size_threshold{};
 
     int estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches);
 
-    int estimateNotEnoughMatches();
+    int estimateNotEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches);
 
     int error_count{};
+
+    double reprojection_error_threshold{};
+    int ransac_max_iterators;
+
+    double match_distance_eta;
 };
 
 

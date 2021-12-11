@@ -42,13 +42,10 @@ bool Vo::Run() {
 bool Vo::Step() {
     Frame frame;
 
-   if (!this->images.getNextFrame(frame)) {
+    if (!this->images.getNextFrame(frame)) {
         return false;
     }
 
-    // TODO 我需要找一个更好的位置来set camera
-    // 首先是camera是否需要变成一个单例模式
-    // 同时我也认为camera类可以拥有更多的属性，然后每一个frame都有只有一个camera
     frame.setCamera(camera);
 
     auto t1 = boost::chrono::steady_clock::now();

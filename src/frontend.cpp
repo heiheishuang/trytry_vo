@@ -100,86 +100,58 @@ Frontend::Frontend() {
     this->interiors_threshold_bad = Config::getData<int>("interiors_threshold_bad");
     this->interiors_threshold_lost = Config::getData<int>("interiors_threshold_lost");
     this->match_size_threshold = Config::getData<int>("match_size_threshold");
+    this->reprojection_error_threshold = Config::getData<double>("reprojection_error_threshold");
+    this->ransac_max_iterators = Config::getData<int>("ransac_max_iterators");
+    this->match_distance_eta = Config::getData<double>("match_distance_eta");
 }
 
 int Frontend::estimateCurrentPose() {
 
-    //TODO 这里还有一个参数需要放到配置文件中
-    auto matches = current_frame_ptr->matchFrames(last_frame_ptr, 0.4);
+    auto matches = current_frame_ptr->matchFrames(last_frame_ptr, match_distance_eta);
 
     int inlines;
     if (matches->size() < this->match_size_threshold) {
-        inlines = estimateNotEnoughMatches();
+        std::cout << "matches size " << matches->size() << " ";
+        inlines = estimateNotEnoughMatches(matches);
     } else {
-        inlines = estimateEnoughMatches(matches);;
+        inlines = estimateEnoughMatches(matches);
+        if (inlines == 0) {
+            inlines = estimateNotEnoughMatches(matches);
+        }
+        std::cout << "inline " << inlines << " ";
     }
-
-    std::cout << "inline " << inlines << " ";
     return inlines;
 }
 
 void Frontend::setCamera(const Camera &config) {
-    //TODO
-//    Frontend::camera = config;
     this->camera = config;
 }
 
 int Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
                          std::vector<Eigen::Vector3d> current,
                          Eigen::Matrix3d &R,
-                         Eigen::Vector3d &t) {
+                         Eigen::Vector3d &t) const {
     srand(time(nullptr));
     std::vector<int> inlines;
 
-    // TODO 参数需要调一下
-    if (last.size() < 10) {
-        return (int) inlines.size();
-    }
-    int max_iters = 1000;
-    double error = 0.15;
-    for (int i = 0; i < max_iters; i++) {
-        int i1 = rand() % last.size();
-        int i2 = rand() % last.size();
-        int i3 = rand() % last.size();
-        int i4 = rand() % last.size();
-        int i5 = rand() % last.size();
-        int i6 = rand() % last.size();
-        int i7 = rand() % last.size();
-        int i8 = rand() % last.size();
-        int i9 = rand() % last.size();
-        int i10 = rand() % last.size();
+    for (int i = 0; i < ransac_max_iterators; i++) {
 
         std::vector<Eigen::Vector3d> part1, part2;
-        part1.emplace_back(last[i1]);
-        part1.emplace_back(last[i2]);
-        part1.emplace_back(last[i3]);
-        part1.emplace_back(last[i4]);
-        part1.emplace_back(last[i5]);
-        part1.emplace_back(last[i6]);
-        part1.emplace_back(last[i7]);
-        part1.emplace_back(last[i8]);
-        part1.emplace_back(last[i9]);
-        part1.emplace_back(last[i10]);
 
-        part2.emplace_back(current[i1]);
-        part2.emplace_back(current[i2]);
-        part2.emplace_back(current[i3]);
-        part2.emplace_back(current[i4]);
-        part2.emplace_back(current[i5]);
-        part2.emplace_back(current[i6]);
-        part2.emplace_back(current[i7]);
-        part2.emplace_back(current[i8]);
-        part2.emplace_back(current[i9]);
-        part2.emplace_back(current[i10]);
+        for (int k = 0; k < 10; k++) {
+            int index = rand() % last.size();
+            part1.emplace_back(last.at(index));
+            part2.emplace_back(current.at(index));
+        }
 
         inlines.clear();
 
         estimateRigid3D(part1, part2, R, t);
-        if (estimateReprojection(part1, part2, R, t) <= error) {
+        if (estimateReprojection(part1, part2, R, t) <= reprojection_error_threshold) {
             part1.clear();
             part2.clear();
             for (int j = 0; j < last.size(); j++)
-                if ((R * last[j] + t - current[j]).norm() <= error) {
+                if ((R * last[j] + t - current[j]).norm() <= reprojection_error_threshold) {
                     inlines.push_back(j);
                     part1.emplace_back(last[j]);
                     part2.emplace_back(current[j]);
@@ -188,7 +160,7 @@ int Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
                 continue;
             }
             estimateRigid3D(part1, part2, R, t);
-            if (estimateReprojection(part1, part2, R, t) <= error) {
+            if (estimateReprojection(part1, part2, R, t) <= reprojection_error_threshold) {
                 return (int) inlines.size();
             }
         }
@@ -239,23 +211,41 @@ void Frontend::estimateRigid3D(std::vector<Eigen::Vector3d> &last,
     Eigen::Matrix3d V = svd.matrixV();
     R = U * V.transpose();
     if (R.determinant() < 0.5) {
-        // R = Eigen::Matrix3d::Identity();
-        // t = Eigen::Vector3d::Zero();
         R = -R;
-        //return;
     }
     t = c1 - R * c2;
 }
 
-int Frontend::estimateNotEnoughMatches() {
+int Frontend::estimateNotEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches) {
+
+    std::vector<Eigen::Vector3d> point_current;
+    std::vector<Eigen::Vector3d> point_last;
+
+    for (auto &match : *matches) {
+        point_current.push_back(current_frame_ptr->getWorldPoint(match.queryIdx));
+        point_last.push_back(last_frame_ptr->getWorldPoint(match.trainIdx));
+    }
+
+
+    Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d t = Eigen::Vector3d::Zero();
+
+    Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
+    calculate_tf.block<3, 3>(0, 0) = R;
+    calculate_tf.block<3, 1>(0, 3) = t;
+    this->tfs.emplace_back(calculate_tf);
+
+    int inlines = 0;
+    for (int j = 0; j < point_last.size(); j++)
+        if ((R * point_last[j] + t - point_current[j]).norm() <= reprojection_error_threshold) {
+            inlines++;
+        }
+
     this->last_frame_ptr = this->current_frame_ptr;
-    this->tfs.emplace_back(Eigen::Matrix4d::Identity());
-    return 0;
+    return inlines;
 }
 
 int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches) {
-    // 我先写一个完整的流程
-    // 然后再去考虑匹配不好的步骤
 
     std::vector<Eigen::Vector3d> point_current;
     std::vector<Eigen::Vector3d> point_last;
@@ -269,13 +259,15 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
     Eigen::Vector3d t;
 
     int inlines = this->estimateRT(point_last, point_current, R, t);
-    last_frame_ptr = current_frame_ptr;
-    Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
-    if (t.norm() < 0.15) {
+
+    if (inlines != 0) {
+        Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
         calculate_tf.block<3, 3>(0, 0) = R;
         calculate_tf.block<3, 1>(0, 3) = t;
+        this->tfs.emplace_back(calculate_tf);
     }
-    this->tfs.emplace_back(calculate_tf);
+
+    last_frame_ptr = current_frame_ptr;
 
     return inlines;
 }

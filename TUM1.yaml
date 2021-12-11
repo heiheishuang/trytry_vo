@@ -1,0 +1,61 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters. Adjust them!
+#--------------------------------------------------------------------------------------------
+
+# Camera calibration and distortion parameters (OpenCV) 
+camera_fx: 517.306408
+camera_fy: 516.469215
+camera_cx: 318.643040
+camera_cy: 255.313989
+
+camera_k1: 0.262383
+camera_k2: -0.953104
+camera_p1: -0.005358
+camera_p2: 0.002628
+camera_k3: 1.163314
+
+camera_width: 640
+camera_height: 480
+
+# Camera frames per second 
+camera_fps: 30.0
+
+# IR projector baseline times fx (aprox.)
+camera_bf: 40.0
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+camera_rgb: 1
+
+# Close/Far threshold. Baseline times.
+ThDepth: 40.0
+
+# Deptmap values factor 
+depth_factor: 5000.0
+min_depth: 0.1
+max_depth: 10
+key_frame_num: 15
+errorThreshold: 10
+Vocabulary: /home/heihei/mySLAM/vocab_larger.yml.gz
+vocScores: 0.07
+
+#--------------------------------------------------------------------------------------------
+# Frontend Parameters
+#--------------------------------------------------------------------------------------------
+
+# Tracking threshold
+interiors_threshold_bad: 20
+interiors_threshold_lost: 5
+# Match size
+match_size_threshold: 10
+
+reprojection_error_threshold: 0.15
+
+# Ransac
+ransac_max_iterators: 1000
+
+#--------------------------------------------------------------------------------------------
+# Frame Parameters
+#--------------------------------------------------------------------------------------------
+match_distance_eta: 0.4
