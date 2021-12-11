@@ -7,6 +7,8 @@
 int main(int argc, char *argv[]) {
 //    ros::init(argc, argv, "try_vo");
 
+    Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
+
     Vo vo;
 
     assert(vo.Init() == true);

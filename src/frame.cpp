@@ -92,7 +92,7 @@ void Frame::setCamera(const Camera &camera) {
 }
 
 double Frame::getDepthValue(int x, int y) {
-    double value = this->depth_image.at<double>(y, x);
+    short value = this->depth_image.at<short>(y, x);
     double depth = value / this->depth_factor;
 
     if (depth < this->min_depth or depth > this->max_depth) {

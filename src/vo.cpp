@@ -10,8 +10,6 @@ Vo::~Vo() = default;
 
 bool Vo::Init() {
 
-    Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
-
     std::string path = "/home/heihei/Downloads/rgbd_dataset_freiburg1_desk/";
 
     this->images.loadDepthImages(path);
@@ -29,9 +27,9 @@ bool Vo::Init() {
 
 bool Vo::Run() {
 
-    while (true) {
-        std::cout << "Vo is running!!!" << std::endl;
+    std::cout << "Vo is running!!!" << std::endl;
 
+    while (true) {
         if (!this->Step()) {
             break;
         }
