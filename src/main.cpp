@@ -5,9 +5,10 @@
 #include "trytry_vo/vo.h"
 
 int main(int argc, char *argv[]) {
-//    ros::init(argc, argv, "try_vo");
+    ros::init(argc, argv, "trytry_vo");
 
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
+    Viewer::getInstance()->setTopicName("path");
 
     Vo vo;
 

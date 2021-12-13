@@ -84,6 +84,8 @@ bool Frontend::Track() {
         std::cout << " TRACKING_GOOD ";
     }
 
+    this->toViewer();
+
     return true;
 }
 
@@ -270,5 +272,12 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
     last_frame_ptr = current_frame_ptr;
 
     return inlines;
+}
+
+void Frontend::toViewer() {
+
+    Viewer::getInstance()->addTF(this->tfs.back());
+
+    Viewer::getInstance()->publishPath();
 }
 

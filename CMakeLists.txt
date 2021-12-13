@@ -42,6 +42,7 @@ add_executable(
         src/config.cpp
         src/images.cpp
         src/frontend.cpp
+        src/viewer.cpp
 
         include/trytry_vo/camera.h
         include/trytry_vo/frame.h
@@ -49,6 +50,7 @@ add_executable(
         include/trytry_vo/config.h
         include/trytry_vo/images.h
         include/trytry_vo/frontend.h
+        include/trytry_vo/viewer.h
 )
 
 
