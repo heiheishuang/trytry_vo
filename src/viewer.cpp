@@ -12,9 +12,9 @@ void Viewer::publishPath() {
 
     for (auto &tf : this->tfs) {
         geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = tf.translation().x();
+        pose.pose.position.x = -tf.translation().x();
         pose.pose.position.y = tf.translation().y();
-        pose.pose.position.z = tf.translation().z();
+        pose.pose.position.z = -tf.translation().z();
 
         Eigen::Quaterniond quaternion;
         quaternion = tf.rotationMatrix();
@@ -63,6 +63,7 @@ Viewer *Viewer::instance = nullptr;
 void Viewer::setTopicName(const std::string &path_topic_name) {
     this->node_handle = ros::NodeHandle();
     this->pub_path = this->node_handle.advertise<nav_msgs::Path>(path_topic_name, 1000);
+    this->pub_pose = this->node_handle.advertise<geometry_msgs::PoseStamped>("try_pose", 1000);
 
 }
 
@@ -73,5 +74,22 @@ Viewer::Viewer(const Viewer &) {
 }
 
 Viewer &Viewer::operator=(const Viewer &) {
+
+}
+
+void Viewer::setInitPose(const Eigen::Quaterniond &rotation,
+                         const Eigen::Vector3d &translation) {
+
+
+    Eigen::Matrix3d R = rotation.matrix();
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(R, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    Eigen::Matrix3d U = svd.matrixU();
+    Eigen::Matrix3d V = svd.matrixV();
+    R = U * V.transpose();
+
+    Eigen::Vector3d t = translation;
+    Sophus::SE3d initSE3(R, t);
+
+    this->tfs.push_back(initSE3);
 
 }

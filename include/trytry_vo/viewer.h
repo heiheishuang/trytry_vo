@@ -17,34 +17,39 @@
 
 class Viewer {
 public:
+    virtual ~Viewer();
+
     static Viewer *getInstance();
 
     void setTopicName(const std::string &path_topic_name);
 
-    virtual ~Viewer();
+    void setInitPose(const Eigen::Quaterniond &rotation, const Eigen::Vector3d &translation);
 
     void publishPath();
+
+    void publishPose();
 
     void addTF(Eigen::Matrix4d &tf);
 
 private:
+    // Constructor
     Viewer();
 
     Viewer(const Viewer &);
 
     Viewer &operator=(const Viewer &);
 
+    // Singleton Pattern
     static Viewer *instance;
     static boost::mutex mutex_instance;
 
-
+    // ROS
     ros::NodeHandle node_handle;
-
-    std::vector<Sophus::SE3d> tfs;
-
     ros::Publisher pub_path;
     ros::Publisher pub_map;
+    ros::Publisher pub_pose;
 
+    std::vector<Sophus::SE3d> tfs;
 };
 
 
