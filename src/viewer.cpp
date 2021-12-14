@@ -12,9 +12,9 @@ void Viewer::publishPath() {
 
     for (auto &tf : this->tfs) {
         geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = -tf.translation().x();
+        pose.pose.position.x = tf.translation().x();
         pose.pose.position.y = tf.translation().y();
-        pose.pose.position.z = -tf.translation().z();
+        pose.pose.position.z = tf.translation().z();
 
         Eigen::Quaterniond quaternion;
         quaternion = tf.rotationMatrix();
@@ -81,12 +81,7 @@ void Viewer::setInitPose(const Eigen::Quaterniond &rotation,
                          const Eigen::Vector3d &translation) {
 
 
-    Eigen::Matrix3d R = rotation.matrix();
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(R, Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Eigen::Matrix3d U = svd.matrixU();
-    Eigen::Matrix3d V = svd.matrixV();
-    R = U * V.transpose();
-
+    Eigen::Matrix3d R = rotation.normalized().toRotationMatrix();
     Eigen::Vector3d t = translation;
     Sophus::SE3d initSE3(R, t);
 

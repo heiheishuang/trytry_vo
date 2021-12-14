@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
     Viewer::getInstance()->setTopicName("path");
 
     // Init Pose
-    Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.2362, -0.0898, 0.8851);
-    Eigen::Vector3d vector = Eigen::Vector3d(0, 0, 0);
+    Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.8851, 0.2362, -0.0898);
+    Eigen::Vector3d vector = Eigen::Vector3d(1.3112, 0.8507, 1.5186);
     Viewer::getInstance()->setInitPose(quaternion, vector);
 
     Vo vo;
