@@ -10,7 +10,7 @@ Vo::~Vo() = default;
 
 bool Vo::Init() {
 
-    std::string path = "/home/heihei/Downloads/rgbd_dataset_freiburg1_desk/";
+    auto path = Config::getData<std::string>("data_set");
 
     this->images.loadDepthImages(path);
 

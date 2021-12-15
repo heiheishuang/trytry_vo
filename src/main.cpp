@@ -5,9 +5,15 @@
 #include "trytry_vo/vo.h"
 
 int main(int argc, char *argv[]) {
-//    ros::init(argc, argv, "try_vo");
+    ros::init(argc, argv, "trytry_vo");
 
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
+    Viewer::getInstance()->setTopicName("path");
+
+    // Init Pose
+    Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.8851, 0.2362, -0.0898);
+    Eigen::Vector3d vector = Eigen::Vector3d(1.3112, 0.8507, 1.5186);
+    Viewer::getInstance()->setInitPose(quaternion, vector);
 
     Vo vo;
 
@@ -19,6 +25,10 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Vo Stop! " << std::endl;
     std::cout << "heihei successfully!!! " << std::endl;
+
+    while (1) {
+        Viewer::getInstance()->publishPath();
+    }
 
     return 0;
 

@@ -10,6 +10,8 @@
 #include "trytry_vo/camera.h"
 #include "trytry_vo/frame.h"
 
+#include "trytry_vo/viewer.h"
+
 #include <vector>
 #include <Eigen/Dense>
 
@@ -35,6 +37,9 @@ public:
     bool Reset();
 
     int estimateCurrentPose();
+
+    //Viewer
+    void toViewer();
 
     // Return inlines
     int estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
