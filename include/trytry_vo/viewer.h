@@ -27,9 +27,9 @@ public:
 
     void publishPath();
 
-    void publishPose();
+    void addRelativeTF(Eigen::Matrix4d &tf);
 
-    void addTF(Eigen::Matrix4d &tf);
+    void addAbsoluteTF(Eigen::Matrix4d &tf);
 
 private:
     // Constructor

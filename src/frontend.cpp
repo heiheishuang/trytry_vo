@@ -276,7 +276,7 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
 
 void Frontend::toViewer() {
 
-    Viewer::getInstance()->addTF(this->tfs.back());
+    Viewer::getInstance()->addRelativeTF(this->tfs.back());
 
     Viewer::getInstance()->publishPath();
 }

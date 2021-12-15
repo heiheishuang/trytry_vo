@@ -32,7 +32,7 @@ void Viewer::publishPath() {
 
 }
 
-void Viewer::addTF(Eigen::Matrix4d &tf) {
+void Viewer::addRelativeTF(Eigen::Matrix4d &tf) {
     Eigen::Matrix3d R = tf.block<3, 3>(0, 0).matrix();
     Eigen::Vector3d t = tf.block<3, 1>(0, 3).matrix();
     Sophus::SE3d tSE3(R, t);
@@ -42,6 +42,14 @@ void Viewer::addTF(Eigen::Matrix4d &tf) {
         Sophus::SE3d new_SE3 = this->tfs.back() * tSE3;
         this->tfs.push_back(new_SE3);
     }
+}
+
+void Viewer::addAbsoluteTF(Eigen::Matrix4d &tf) {
+    Eigen::Matrix3d R = tf.block<3, 3>(0, 0).matrix();
+    Eigen::Vector3d t = tf.block<3, 1>(0, 3).matrix();
+    Sophus::SE3d tSE3(R, t);
+
+    this->tfs.push_back(tSE3);
 }
 
 Viewer *Viewer::getInstance() {
