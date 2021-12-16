@@ -30,6 +30,8 @@ public:
 
     Eigen::Vector3d getWorldPoint(int index);
 
+    cv::KeyPoint getKeyPoint(int index);
+
     // Generate
     void setColorImage(const cv::Mat &colorImage);
 

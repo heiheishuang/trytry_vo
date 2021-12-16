@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <Eigen/Dense>
+#include <opencv2/calib3d/calib3d.hpp>
 
 enum class Status {
     INIT,
@@ -36,7 +37,7 @@ public:
 
     int estimateCurrentPose();
 
-    // Return inlines
+    // Return inlines RANSAC
     int estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
                    Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
@@ -45,6 +46,10 @@ public:
 
     static void estimateRigid3D(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
                                 Eigen::Matrix3d &R, Eigen::Vector3d &t);
+
+    // opencv PnP
+    int estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
+                       Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
 
     const std::vector<Eigen::Matrix4d> &getTf() const;
