@@ -260,8 +260,8 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
     Eigen::Matrix3d R;
     Eigen::Vector3d t;
 
-//    int inlines = this->estimateRT(point_last, point_current, R, t);
-    int inlines = this->estimateRT_PNP(matches, R, t);
+    int inlines = this->estimateRT(point_last, point_current, R, t);
+//    int inlines = this->estimateRT_PNP(matches, R, t);
 
     if (inlines != 0) {
         Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
@@ -286,29 +286,25 @@ int Frontend::estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
                              Eigen::Matrix3d &R,
                              Eigen::Vector3d &t) {
 
-    cv::Mat R_vec, t_vec, inlines;
     std::vector<cv::Point3d> point_last;
     std::vector<cv::Point2d> point_current;
     for (auto &match : *matches) {
-        Eigen::Vector3d last = last_frame_ptr->getWorldPoint(match.queryIdx);
+        Eigen::Vector3d last = last_frame_ptr->getWorldPoint(match.trainIdx);
         point_last.emplace_back(last.x(), last.y(), last.z());
-        cv::KeyPoint current = current_frame_ptr->getKeyPoint(match.trainIdx);
+        cv::KeyPoint current = current_frame_ptr->getKeyPoint(match.queryIdx);
         point_current.emplace_back(current.pt.x, current.pt.y);
     }
 
+    cv::Mat R_vec, t_vec, inlines;
     cv::solvePnPRansac(point_last, point_current,
                        this->camera.getMatK(), cv::Mat(),
                        R_vec, t_vec,
-                       false, 1000, 0.15, 0.99,
+                       false, 1000, 0.5, 0.99,
                        inlines);
-    if (inlines.rows != 0) {
-        Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
-        cv::cv2eigen(R_vec, R);
-        cv::cv2eigen(t_vec, t);
-        calculate_tf.block<3, 3>(0, 0) = R;
-        calculate_tf.block<3, 1>(0, 3) = t;
-        this->tfs.emplace_back(calculate_tf);
-    }
+    cv::Rodrigues(R_vec, R_vec);
+
+    cv::cv2eigen(R_vec, R);
+    cv::cv2eigen(t_vec, t);
 
     return inlines.rows;
 }

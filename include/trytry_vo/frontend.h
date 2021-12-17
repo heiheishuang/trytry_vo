@@ -14,6 +14,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <sophus/so3.hpp>
 
 enum class Status {
     INIT,
