@@ -255,9 +255,9 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
 
     int inlines = 0;
 //    this->estimateRT_RANSAC(point_last, point_current, R, t);
-//    this->estimateRT_PNP(matches, R, t);
+    this->estimateRT_PNP(matches, R, t);
 //    this->estimateRigid3D(point_last, point_current, R, t);
-    this->estimateRT_BA(point_last, point_current, R, t);
+//    this->estimateRT_BA(point_last, point_current, R, t);
 
     inlines = computeInlines(point_last, point_current, R, t);
 
@@ -303,7 +303,9 @@ void Frontend::estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
     cv::Rodrigues(R_vec, R_vec);
 
     cv::cv2eigen(R_vec, R);
+    R = R.inverse().eval();
     cv::cv2eigen(t_vec, t);
+    t = -R * t;
 }
 
 void Frontend::estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
