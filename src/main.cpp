@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     ros::init(argc, argv, "trytry_vo");
 
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
-    Viewer::getInstance()->setTopicName("optimize_5");
+    Viewer::getInstance()->setTopicName("PNP30");
 
     // Init Pose
     Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.8851, 0.2362, -0.0898);
@@ -26,9 +26,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Vo Stop! " << std::endl;
     std::cout << "heihei successfully!!! " << std::endl;
 
-    while (1) {
-        Viewer::getInstance()->publishPath();
-    }
+    Viewer::getInstance()->writeFile("PNP30.txt");
 
     return 0;
 

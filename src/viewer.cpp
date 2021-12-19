@@ -96,3 +96,31 @@ void Viewer::setInitPose(const Eigen::Quaterniond &rotation,
     this->tfs.push_back(initSE3);
 
 }
+
+void Viewer::writeFile(const std::string &file_name) {
+
+    std::ofstream out(file_name.c_str());
+
+    for (auto &tf : this->tfs) {
+        geometry_msgs::PoseStamped pose;
+        pose.pose.position.x = tf.translation().x();
+        pose.pose.position.y = tf.translation().y();
+        pose.pose.position.z = tf.translation().z();
+
+        Eigen::Quaterniond quaternion;
+        quaternion = tf.rotationMatrix();
+        pose.pose.orientation.x = quaternion.x();
+        pose.pose.orientation.y = quaternion.y();
+        pose.pose.orientation.z = quaternion.z();
+        pose.pose.orientation.w = quaternion.w();
+
+        out << ros::Time::now() << " "
+            << tf.translation().x() << " " << tf.translation().y() << " " << tf.translation().z() << " "
+            << quaternion.z() << " " << quaternion.y() << " " << quaternion.z() << " " << quaternion.w()
+            << std::endl;
+    }
+
+    out.close();
+
+
+}

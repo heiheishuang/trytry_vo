@@ -15,6 +15,8 @@
 #include <vector>
 #include <boost/thread/mutex.hpp>
 
+#include <fstream>
+
 class Viewer {
 public:
     virtual ~Viewer();
@@ -30,6 +32,8 @@ public:
     void addRelativeTF(Eigen::Matrix4d &tf);
 
     void addAbsoluteTF(Eigen::Matrix4d &tf);
+
+    void writeFile(const std::string &file_name);
 
 private:
     // Constructor
