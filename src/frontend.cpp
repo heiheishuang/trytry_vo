@@ -250,14 +250,14 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
         point_last.push_back(last_frame_ptr->getWorldPoint(match.trainIdx));
     }
 
-    Eigen::Matrix3d R;
-    Eigen::Vector3d t;
+    Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d t = Eigen::Vector3d::Identity();
 
-    int inlines = 1;
+    int inlines = 0;
 //    this->estimateRT_RANSAC(point_last, point_current, R, t);
 //    this->estimateRT_PNP(matches, R, t);
-    this->estimateRigid3D(point_last, point_current, R, t);
-    Frontend::estimateRT_BA(point_last, point_current, R, t);
+//    this->estimateRigid3D(point_last, point_current, R, t);
+    this->estimateRT_BA(point_last, point_current, R, t);
 
     inlines = computeInlines(point_last, point_current, R, t);
 
@@ -307,7 +307,7 @@ void Frontend::estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
 }
 
 void Frontend::estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                             Eigen::Matrix3d &R, Eigen::Vector3d &t) {
+                             Eigen::Matrix3d &R, Eigen::Vector3d &t) const {
     typedef g2o::BlockSolver_6_3 BlockSolverType;
     typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
 
@@ -324,18 +324,18 @@ void Frontend::estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eige
     // vertex
     auto *vertex_pose = new VertexPose(); // camera vertex_pose
     vertex_pose->setId(0);
-    vertex_pose->setEstimate(Sophus::SE3d());
+    vertex_pose->setEstimate(Sophus::SE3d(R, t));
     optimizer.addVertex(vertex_pose);
 
     // edges
     int index = 1;
     for (size_t i = 0; i < current.size(); i++) {
         auto *edge = new EdgeProjectionPoseOnly(
-                Eigen::Vector3d(last.at(i).x(), last.at(i).y(), last.at(i).z()));
+                Eigen::Vector3d(current.at(i).x(), current.at(i).y(), current.at(i).z()));
         edge->setId(index);
         edge->setVertex(0, dynamic_cast<VertexPose *> (vertex_pose));
         edge->setMeasurement(Eigen::Vector3d(
-                current[i].x(), current[i].y(), current[i].z()));
+                last.at(i).x(), last.at(i).y(), last.at(i).z()));
         edge->setInformation(Eigen::Matrix3d::Identity());
         optimizer.addEdge(edge);
         index++;
