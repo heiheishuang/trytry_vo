@@ -20,6 +20,9 @@ include_directories(${Sophus_INCLUDE_DIRS})
 find_package(g2o REQUIRED)
 include_directories(${g2o_INCLUDE_DIRS})
 
+find_package(Glog REQUIRED)
+include_directories(${GLOG_INCLUDE_DIRS})
+
 find_package(Boost REQUIRED COMPONENTS system)
 
 include_directories(
@@ -81,6 +84,8 @@ target_link_libraries(${PROJECT_NAME}_node
         ${catkin_LIBRARIES}
         ${Sophus_LIBRARIES}
         Sophus::Sophus
+        glog::glog
+        ${GLOG_INCLUDE_DIRS}
         )
 
 target_link_libraries(ground_truth
@@ -90,4 +95,6 @@ target_link_libraries(ground_truth
         ${catkin_LIBRARIES}
         ${Sophus_LIBRARIES}
         Sophus::Sophus
+        glog::glog
+        ${GLOG_INCLUDE_DIRS}
         )

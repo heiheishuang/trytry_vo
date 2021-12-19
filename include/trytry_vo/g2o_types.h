@@ -27,19 +27,20 @@ class VertexPose : public g2o::BaseVertex<6, Sophus::SE3d> {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-    virtual void setToOriginImpl() override { _estimate = Sophus::SE3d(); }
+    virtual void setToOriginImpl() override {
+        _estimate = Sophus::SE3d();
+    }
 
     /// left multiplication on SE3
     virtual void oplusImpl(const double *update) override {
         Eigen::Matrix<double, 6, 1> update_eigen;
-        update_eigen << update[0], update[1], update[2], update[3], update[4],
-                update[5];
+        update_eigen << update[0], update[1], update[2], update[3], update[4], update[5];
         _estimate = Sophus::SE3d::exp(update_eigen) * _estimate;
     }
 
-    virtual bool read(std::istream &in) override { return true; }
+    virtual bool read(std::istream &in) override {}
 
-    virtual bool write(std::ostream &out) const override { return true; }
+    virtual bool write(std::ostream &out) const override {}
 };
 
 class VertexSE3Expmap : public g2o::BaseVertex<6, g2o::SE3Quat> {
@@ -50,14 +51,8 @@ public:
 
     void oplusImpl(const double *update_) override {
 
-        Eigen::Matrix<double, 6, 1> update_eigen;
-        update_eigen << update_[0], update_[1], update_[2], update_[3], update_[4],
-                update_[5];
-
-        //TODO
-//        Eigen::Map<const g2o::Vector6> update(update_);
-
-        _estimate = g2o::SE3Quat::exp(update_eigen) * _estimate;
+        Eigen::Map<const g2o::Vector6> update(update_);
+        _estimate = g2o::SE3Quat::exp(update) * _estimate;
     }
 
     bool read(std::istream &in) override { return true; }
