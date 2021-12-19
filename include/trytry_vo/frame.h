@@ -23,7 +23,6 @@ public:
 
     std::shared_ptr<std::vector<cv::DMatch>> matchFrames(std::shared_ptr<Frame> &f, double eta);
 
-
     double getDepthValue(int x, int y);
 
     Eigen::Vector3d getWorldPoint(int x, int y);
@@ -56,6 +55,8 @@ public:
     void setTimeStamp(double timeStamp);
 
     void setId(int id);
+
+    int getId() const;
 
     void setCamera(const Camera &camera);
 

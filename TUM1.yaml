@@ -54,11 +54,14 @@ interiors_threshold_bad: 20
 interiors_threshold_lost: 0
 # Match size
 match_size_threshold: 10
-
+# Reprojection Error
 reprojection_error_threshold: 0.15
 
 # Ransac
 ransac_max_iterators: 1000
+
+# Number of frames to BA
+number_optimize_frame: 5
 
 #--------------------------------------------------------------------------------------------
 # Frame Parameters

@@ -142,3 +142,7 @@ Frame::Frame() {
 cv::KeyPoint Frame::getKeyPoint(int index) {
     return this->key_points[index];
 }
+
+int Frame::getId() const {
+    return this->id;
+}
