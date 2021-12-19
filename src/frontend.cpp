@@ -158,6 +158,7 @@ void Frontend::estimateRT_RANSAC(std::vector<Eigen::Vector3d> last,
                 continue;
             }
             estimateRigid3D(part1, part2, R, t);
+            return;
         }
     }
     R = Eigen::Matrix3d::Identity();
@@ -253,10 +254,10 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
     Eigen::Vector3d t;
 
     int inlines = 1;
-//  this->estimateRT_RANSAC(point_last, point_current, R, t);
-//  this->estimateRT_PNP(matches, R, t);
+//    this->estimateRT_RANSAC(point_last, point_current, R, t);
+//    this->estimateRT_PNP(matches, R, t);
     this->estimateRigid3D(point_last, point_current, R, t);
-//    this->estimateRT_BA(point_last, point_current, R, t);
+    Frontend::estimateRT_BA(point_last, point_current, R, t);
 
     inlines = computeInlines(point_last, point_current, R, t);
 
@@ -306,7 +307,7 @@ void Frontend::estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
 }
 
 void Frontend::estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                             Eigen::Matrix3d &R, Eigen::Vector3d &t) const {
+                             Eigen::Matrix3d &R, Eigen::Vector3d &t) {
     typedef g2o::BlockSolver_6_3 BlockSolverType;
     typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
 

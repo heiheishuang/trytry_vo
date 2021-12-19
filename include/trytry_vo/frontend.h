@@ -47,8 +47,8 @@ public:
                            Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
     // Return RT BA
-    void estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                       Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
+    static void estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+                              Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
     // Return RT opencv PnP
     void estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
