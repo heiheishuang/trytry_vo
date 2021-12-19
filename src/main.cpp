@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     ros::init(argc, argv, "trytry_vo");
 
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
-    Viewer::getInstance()->setTopicName("path");
+    Viewer::getInstance()->setTopicName("testpath");
 
     // Init Pose
     Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.8851, 0.2362, -0.0898);

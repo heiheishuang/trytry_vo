@@ -51,7 +51,7 @@ vocScores: 0.07
 
 # Tracking threshold
 interiors_threshold_bad: 20
-interiors_threshold_lost: 5
+interiors_threshold_lost: 0
 # Match size
 match_size_threshold: 10
 

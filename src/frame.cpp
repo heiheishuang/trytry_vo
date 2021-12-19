@@ -138,3 +138,7 @@ Frame::Frame() {
     this->depth_factor = Config::getData<double>("depth_factor");
     this->key_frame_num = Config::getData<int>("key_frame_num");
 }
+
+cv::KeyPoint Frame::getKeyPoint(int index) {
+    return this->key_points[index];
+}

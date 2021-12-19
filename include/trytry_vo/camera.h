@@ -6,6 +6,7 @@
 #define TRYTRY_VO_CAMERA_H
 
 #include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
 
 class Camera {
 
@@ -21,7 +22,9 @@ public:
 
     Eigen::Vector2d world2Pix(const Eigen::Vector3d &world_pos);
 
+    const Eigen::Matrix3d &getCameraK() const;
 
+    cv::Mat getMatK() const;
 private:
 
     Eigen::Matrix3d K{};

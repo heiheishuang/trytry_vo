@@ -36,4 +36,14 @@ Camera::Camera(const Camera &camera) {
     this->K = camera.K;
 }
 
+const Eigen::Matrix3d &Camera::getCameraK() const {
+    return K;
+}
+
+cv::Mat Camera::getMatK() const {
+    cv::Mat camera;
+    cv::eigen2cv(this->K, camera);
+    return camera;
+}
+
 Camera::Camera() = default;

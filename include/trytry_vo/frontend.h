@@ -9,11 +9,12 @@
 #include "trytry_vo/images.h"
 #include "trytry_vo/camera.h"
 #include "trytry_vo/frame.h"
-
 #include "trytry_vo/viewer.h"
 
 #include <vector>
 #include <Eigen/Dense>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <sophus/so3.hpp>
 
 enum class Status {
     INIT,
@@ -41,16 +42,24 @@ public:
     //Viewer
     void toViewer();
 
-    // Return inlines
-    int estimateRT(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
-                   Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
+    // Return RT RANSAC with SVD
+    void estimateRT_RANSAC(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+                           Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
-    static double estimateReprojection(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
-                                       Eigen::Matrix3d &R, Eigen::Vector3d &t);
+    // Return RT BA
+    void estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+                       Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
+    // Return RT opencv PnP
+    void estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
+                        Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
+
+    // Return RT BA
     static void estimateRigid3D(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
                                 Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
+    static double estimateReprojection(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                                       Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
     const std::vector<Eigen::Matrix4d> &getTf() const;
 
@@ -82,6 +91,9 @@ private:
     int estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches);
 
     int estimateNotEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &matches);
+
+    int computeInlines(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                       Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
     int error_count{};
 

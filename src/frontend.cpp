@@ -4,10 +4,8 @@
 
 #include <iostream>
 
-#include <sophus/se3.hpp>
-#include <sophus/so3.hpp>
-
 #include "trytry_vo/frontend.h"
+#include "trytry_vo/g2o_types.h"
 
 const std::vector<Eigen::Matrix4d> &Frontend::getTf() const {
     return tfs;
@@ -129,12 +127,11 @@ void Frontend::setCamera(const Camera &config) {
     this->camera = config;
 }
 
-int Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
-                         std::vector<Eigen::Vector3d> current,
-                         Eigen::Matrix3d &R,
-                         Eigen::Vector3d &t) const {
+void Frontend::estimateRT_RANSAC(std::vector<Eigen::Vector3d> last,
+                                 std::vector<Eigen::Vector3d> current,
+                                 Eigen::Matrix3d &R,
+                                 Eigen::Vector3d &t) const {
     srand(time(nullptr));
-    std::vector<int> inlines;
 
     for (int i = 0; i < ransac_max_iterators; i++) {
 
@@ -146,30 +143,26 @@ int Frontend::estimateRT(std::vector<Eigen::Vector3d> last,
             part2.emplace_back(current.at(index));
         }
 
-        inlines.clear();
 
         estimateRigid3D(part1, part2, R, t);
         if (estimateReprojection(part1, part2, R, t) <= reprojection_error_threshold) {
             part1.clear();
             part2.clear();
-            for (int j = 0; j < last.size(); j++)
+            for (int j = 0; j < last.size(); j++) {
                 if ((R * last[j] + t - current[j]).norm() <= reprojection_error_threshold) {
-                    inlines.push_back(j);
                     part1.emplace_back(last[j]);
                     part2.emplace_back(current[j]);
                 }
+            }
             if (part1.size() < 10) {
                 continue;
             }
             estimateRigid3D(part1, part2, R, t);
-            if (estimateReprojection(part1, part2, R, t) <= reprojection_error_threshold) {
-                return (int) inlines.size();
-            }
+            return;
         }
     }
     R = Eigen::Matrix3d::Identity();
     t = Eigen::Vector3d::Zero();
-    return (int) inlines.size();
 }
 
 double Frontend::estimateReprojection(std::vector<Eigen::Vector3d> &last,
@@ -257,10 +250,17 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
         point_last.push_back(last_frame_ptr->getWorldPoint(match.trainIdx));
     }
 
-    Eigen::Matrix3d R;
-    Eigen::Vector3d t;
+    Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d t = Eigen::Vector3d::Identity();
 
-    int inlines = this->estimateRT(point_last, point_current, R, t);
+    int inlines = 0;
+//    this->estimateRT_RANSAC(point_last, point_current, R, t);
+//    this->estimateRT_PNP(matches, R, t);
+//    this->estimateRigid3D(point_last, point_current, R, t);
+    this->estimateRT_BA(point_last, point_current, R, t);
+
+    inlines = computeInlines(point_last, point_current, R, t);
+
 
     if (inlines != 0) {
         Eigen::Matrix4d calculate_tf = Eigen::Matrix4d::Identity();
@@ -281,3 +281,85 @@ void Frontend::toViewer() {
     Viewer::getInstance()->publishPath();
 }
 
+void Frontend::estimateRT_PNP(std::shared_ptr<std::vector<cv::DMatch>> &matches,
+                              Eigen::Matrix3d &R,
+                              Eigen::Vector3d &t) const {
+
+    std::vector<cv::Point3d> point_last;
+    std::vector<cv::Point2d> point_current;
+    for (auto &match : *matches) {
+        Eigen::Vector3d last = last_frame_ptr->getWorldPoint(match.trainIdx);
+        point_last.emplace_back(last.x(), last.y(), last.z());
+        cv::KeyPoint current = current_frame_ptr->getKeyPoint(match.queryIdx);
+        point_current.emplace_back(current.pt.x, current.pt.y);
+    }
+
+    cv::Mat R_vec, t_vec, inlines;
+    cv::solvePnPRansac(point_last, point_current,
+                       this->camera.getMatK(), cv::Mat(),
+                       R_vec, t_vec,
+                       false, 1000, 0.5, 0.99,
+                       inlines);
+    cv::Rodrigues(R_vec, R_vec);
+
+    cv::cv2eigen(R_vec, R);
+    cv::cv2eigen(t_vec, t);
+}
+
+void Frontend::estimateRT_BA(std::vector<Eigen::Vector3d> last, std::vector<Eigen::Vector3d> current,
+                             Eigen::Matrix3d &R, Eigen::Vector3d &t) const {
+    typedef g2o::BlockSolver_6_3 BlockSolverType;
+    typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
+
+    auto solver = new g2o::OptimizationAlgorithmLevenberg(
+            g2o::make_unique<BlockSolverType>(
+                    g2o::make_unique<LinearSolverType>()
+            )
+    );
+
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm(solver);
+    optimizer.setVerbose(true);
+
+    // vertex
+    auto *vertex_pose = new VertexPose(); // camera vertex_pose
+    vertex_pose->setId(0);
+    vertex_pose->setEstimate(Sophus::SE3d(R, t));
+    optimizer.addVertex(vertex_pose);
+
+    // edges
+    int index = 1;
+    for (size_t i = 0; i < current.size(); i++) {
+        auto *edge = new EdgeProjectionPoseOnly(
+                Eigen::Vector3d(current.at(i).x(), current.at(i).y(), current.at(i).z()));
+        edge->setId(index);
+        edge->setVertex(0, dynamic_cast<VertexPose *> (vertex_pose));
+        edge->setMeasurement(Eigen::Vector3d(
+                last.at(i).x(), last.at(i).y(), last.at(i).z()));
+        edge->setInformation(Eigen::Matrix3d::Identity());
+        optimizer.addEdge(edge);
+        index++;
+    }
+
+    optimizer.setVerbose(true);
+    optimizer.initializeOptimization();
+    optimizer.optimize(10);
+
+    Sophus::SE3d rt;
+    rt = vertex_pose->estimate();
+
+    R = rt.rotationMatrix();
+    t = rt.translation();
+}
+
+int Frontend::computeInlines(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                             Eigen::Matrix3d &R, Eigen::Vector3d &t) const {
+    int inlines = 0;
+    for (int j = 0; j < last.size(); j++) {
+        if ((R * last[j] + t - current[j]).norm() <= reprojection_error_threshold) {
+            inlines++;
+        }
+    }
+
+    return inlines;
+}
