@@ -371,6 +371,10 @@ int Frontend::computeInlines(std::vector<Eigen::Vector3d> &last, std::vector<Eig
 }
 
 void Frontend::optimizeFramesRT() {
+    if (number_optimize_frame <= 1) {
+        // Unable to optimize
+        return;
+    }
     if (this->current_frame_ptr->getId() < number_optimize_frame) {
         this->last_n_frames.push_back(current_frame_ptr);
         return;
