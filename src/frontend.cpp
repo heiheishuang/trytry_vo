@@ -71,6 +71,8 @@ bool Frontend::Track() {
 
     int interiors = this->estimateCurrentPose();
 
+    this->optimizeFramesRT();
+
     if (interiors < this->interiors_threshold_lost) {
         this->status = Status::LOST;
         std::cout << " LOST ";
@@ -103,6 +105,8 @@ Frontend::Frontend() {
     this->reprojection_error_threshold = Config::getData<double>("reprojection_error_threshold");
     this->ransac_max_iterators = Config::getData<int>("ransac_max_iterators");
     this->match_distance_eta = Config::getData<double>("match_distance_eta");
+
+    this->number_optimize_frame = Config::getData<int>("number_optimize_frame");
 }
 
 int Frontend::estimateCurrentPose() {
@@ -145,7 +149,7 @@ void Frontend::estimateRT_RANSAC(std::vector<Eigen::Vector3d> last,
 
 
         estimateRigid3D(part1, part2, R, t);
-        if (estimateReprojection(part1, part2, R, t) <= reprojection_error_threshold) {
+        if (calculateReprojectionError(part1, part2, R, t) <= reprojection_error_threshold) {
             part1.clear();
             part2.clear();
             for (int j = 0; j < last.size(); j++) {
@@ -165,10 +169,10 @@ void Frontend::estimateRT_RANSAC(std::vector<Eigen::Vector3d> last,
     t = Eigen::Vector3d::Zero();
 }
 
-double Frontend::estimateReprojection(std::vector<Eigen::Vector3d> &last,
-                                      std::vector<Eigen::Vector3d> &current,
-                                      Eigen::Matrix3d &R,
-                                      Eigen::Vector3d &t) {
+double Frontend::calculateReprojectionError(std::vector<Eigen::Vector3d> &last,
+                                            std::vector<Eigen::Vector3d> &current,
+                                            Eigen::Matrix3d &R,
+                                            Eigen::Vector3d &t) {
     double reprojection_error = 0;
     for (int i = 0; i < last.size(); i++) {
         reprojection_error += (R * last[i] + t - current[i]).norm();
@@ -364,4 +368,94 @@ int Frontend::computeInlines(std::vector<Eigen::Vector3d> &last, std::vector<Eig
     }
 
     return inlines;
+}
+
+void Frontend::optimizeFramesRT() {
+    if (this->current_frame_ptr->getId() < number_optimize_frame) {
+        this->last_n_frames.push_back(current_frame_ptr);
+        return;
+    }
+
+    this->last_n_frames.push_back(current_frame_ptr);
+
+    typedef g2o::BlockSolver_6_3 BlockSolverType;
+    typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
+
+    auto solver = new g2o::OptimizationAlgorithmLevenberg(
+            g2o::make_unique<BlockSolverType>(
+                    g2o::make_unique<LinearSolverType>()
+            )
+    );
+
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm(solver);
+    optimizer.setVerbose(true);
+
+    std::vector<VertexPose *> vertex_poses;
+
+    // vertex
+    for (int i = last_n_frames.front()->getId(); i <= last_n_frames.back()->getId(); i++) {
+        auto *vertex_pose = new VertexPose(); // camera vertex_pose
+        vertex_pose->setId(i);
+
+        Eigen::Matrix4d tf = this->tfs.at(i);
+        Eigen::Matrix3d R = tf.block<3, 3>(0, 0).matrix();
+        Eigen::Vector3d t = tf.block<3, 1>(0, 3).matrix();
+
+        vertex_pose->setEstimate(Sophus::SE3d(R, t));
+        optimizer.addVertex(vertex_pose);
+        vertex_poses.push_back(vertex_pose);
+    }
+
+    // edges
+    int index = number_optimize_frame;
+    for (int frame_index = 1; frame_index < number_optimize_frame; frame_index++) {
+
+        auto last = last_n_frames[frame_index - 1];
+        auto current = last_n_frames[frame_index];
+        auto matches = current->matchFrames(last, match_distance_eta);
+
+        std::vector<Eigen::Vector3d> point_current;
+        std::vector<Eigen::Vector3d> point_last;
+
+        for (auto &match : *matches) {
+            point_current.push_back(current->getWorldPoint(match.queryIdx));
+            point_last.push_back(last->getWorldPoint(match.trainIdx));
+        }
+
+        for (size_t i = 0; i < matches->size(); i++) {
+            auto *edge = new EdgeProjectionPoseOnly(
+                    Eigen::Vector3d(point_current.at(i).x(), point_current.at(i).y(), point_current.at(i).z()));
+            edge->setId(index);
+            edge->setVertex(0, dynamic_cast<VertexPose *> (optimizer.vertex(frame_index - 1)));
+            edge->setMeasurement(Eigen::Vector3d(
+                    point_last.at(i).x(), point_last.at(i).y(), point_last.at(i).z()));
+            edge->setInformation(Eigen::Matrix3d::Identity());
+            optimizer.addEdge(edge);
+            index++;
+        }
+    }
+
+    optimizer.setVerbose(true);
+    optimizer.initializeOptimization();
+    optimizer.optimize(10);
+
+
+    int frame_index = 0;
+    for (int i = last_n_frames.front()->getId(); i <= last_n_frames.back()->getId(); i++) {
+        VertexPose *vertex_pose = vertex_poses.at(frame_index);
+
+        Sophus::SE3d rt;
+        rt = vertex_pose->estimate();
+
+        Eigen::Matrix3d R = rt.rotationMatrix();
+        Eigen::Vector3d t = rt.translation();
+
+        this->tfs.at(i).block<3, 3>(0, 0) = R;
+        this->tfs.at(i).block<3, 1>(0, 3) = t;
+
+        frame_index++;
+    }
+
+    this->last_n_frames.pop_front();
 }

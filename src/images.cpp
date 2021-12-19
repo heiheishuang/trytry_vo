@@ -7,7 +7,6 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-#include <fstream>
 #include <sstream>
 
 const std::vector<std::string> &Images::getFilenameImageDepth() const {

@@ -12,6 +12,7 @@
 #include "trytry_vo/viewer.h"
 
 #include <vector>
+#include <queue>
 #include <Eigen/Dense>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <sophus/so3.hpp>
@@ -58,8 +59,10 @@ public:
     static void estimateRigid3D(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
                                 Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
-    static double estimateReprojection(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
-                                       Eigen::Matrix3d &R, Eigen::Vector3d &t);
+    static double calculateReprojectionError(std::vector<Eigen::Vector3d> &last, std::vector<Eigen::Vector3d> &current,
+                                             Eigen::Matrix3d &R, Eigen::Vector3d &t);
+
+    void optimizeFramesRT();
 
     const std::vector<Eigen::Matrix4d> &getTf() const;
 
@@ -82,6 +85,8 @@ private:
     std::shared_ptr<Frame> last_frame_ptr{};
     std::shared_ptr<Frame> current_frame_ptr{};
 
+    std::deque<std::shared_ptr<Frame>> last_n_frames{};
+
     Status status{};
 
     int interiors_threshold_bad{};
@@ -96,6 +101,7 @@ private:
                        Eigen::Matrix3d &R, Eigen::Vector3d &t) const;
 
     int error_count{};
+    int number_optimize_frame{};
 
     double reprojection_error_threshold{};
     int ransac_max_iterators;
