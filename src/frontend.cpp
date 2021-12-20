@@ -282,6 +282,8 @@ void Frontend::toViewer() {
 
     Viewer::getInstance()->addRelativeTF(this->tfs.back());
 
+    Viewer::getInstance()->addTimestamp(current_frame_ptr->getTimeStamp());
+
     Viewer::getInstance()->publishPath();
 }
 

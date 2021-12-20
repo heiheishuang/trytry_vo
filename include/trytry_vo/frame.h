@@ -60,6 +60,8 @@ public:
 
     void setCamera(const Camera &camera);
 
+    double getTimeStamp() const;
+
 private:
 
     int id{0};
@@ -76,7 +78,7 @@ private:
     cv::Mat depth_image;
     cv::Mat left_image;
     cv::Mat right_image;
-    double time_stamp{};
+    double time_stamp;
 
     Eigen::Vector3d pose;
 

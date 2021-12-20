@@ -61,7 +61,7 @@ reprojection_error_threshold: 0.15
 ransac_max_iterators: 1000
 
 # Number of frames to BA
-number_optimize_frame: 30
+number_optimize_frame: 5
 
 #--------------------------------------------------------------------------------------------
 # Frame Parameters

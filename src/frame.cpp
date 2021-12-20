@@ -146,3 +146,7 @@ cv::KeyPoint Frame::getKeyPoint(int index) {
 int Frame::getId() const {
     return this->id;
 }
+
+double Frame::getTimeStamp() const {
+    return time_stamp;
+}

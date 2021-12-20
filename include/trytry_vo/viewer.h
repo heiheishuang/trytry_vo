@@ -25,13 +25,16 @@ public:
 
     void setTopicName(const std::string &path_topic_name);
 
-    void setInitPose(const Eigen::Quaterniond &rotation, const Eigen::Vector3d &translation);
+    void setInitPose(const Eigen::Quaterniond &rotation, const Eigen::Vector3d &translation,
+                     const double timestamp);
 
     void publishPath();
 
     void addRelativeTF(Eigen::Matrix4d &tf);
 
     void addAbsoluteTF(Eigen::Matrix4d &tf);
+
+    void addTimestamp(double timestamp);
 
     void writeFile(const std::string &file_name);
 
@@ -54,6 +57,7 @@ private:
     ros::Publisher pub_pose;
 
     std::vector<Sophus::SE3d> tfs;
+    std::vector<double> timestamps;
 };
 
 

@@ -86,12 +86,15 @@ Viewer &Viewer::operator=(const Viewer &) {
 }
 
 void Viewer::setInitPose(const Eigen::Quaterniond &rotation,
-                         const Eigen::Vector3d &translation) {
+                         const Eigen::Vector3d &translation,
+                         const double timestamp) {
 
 
     Eigen::Matrix3d R = rotation.normalized().toRotationMatrix();
     Eigen::Vector3d t = translation;
     Sophus::SE3d initSE3(R, t);
+
+    this->timestamps.push_back(timestamp);
 
     this->tfs.push_back(initSE3);
 
@@ -100,6 +103,7 @@ void Viewer::setInitPose(const Eigen::Quaterniond &rotation,
 void Viewer::writeFile(const std::string &file_name) {
 
     std::ofstream out(file_name.c_str());
+    int i = 0;
 
     for (auto &tf : this->tfs) {
         geometry_msgs::PoseStamped pose;
@@ -114,13 +118,18 @@ void Viewer::writeFile(const std::string &file_name) {
         pose.pose.orientation.z = quaternion.z();
         pose.pose.orientation.w = quaternion.w();
 
-        out << ros::Time::now() << " "
+        out << std::setprecision(16) << timestamps.at(i) << " "
             << tf.translation().x() << " " << tf.translation().y() << " " << tf.translation().z() << " "
             << quaternion.z() << " " << quaternion.y() << " " << quaternion.z() << " " << quaternion.w()
             << std::endl;
+        i++;
     }
 
     out.close();
 
 
+}
+
+void Viewer::addTimestamp(double timestamp) {
+    this->timestamps.push_back(timestamp);
 }
