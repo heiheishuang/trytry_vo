@@ -8,12 +8,19 @@ int main(int argc, char *argv[]) {
     ros::init(argc, argv, "trytry_vo");
 
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
-    Viewer::getInstance()->setTopicName("PNP5");
+
+    std::string topic_name = Config::getData<std::string>("topic_name");
+    Viewer::getInstance()->setTopicName(topic_name);
 
     // Init Pose
-    Eigen::Quaterniond quaternion = Eigen::Quaterniond(-0.3909, 0.8851, 0.2362, -0.0898);
-    Eigen::Vector3d vector = Eigen::Vector3d(1.3112, 0.8507, 1.5186);
-    Viewer::getInstance()->setInitPose(quaternion, vector, 1305031453.3595);
+    Eigen::Quaterniond quaternion = Eigen::Quaterniond(Config::getData<double>("rotation_quaternion_w"),
+                                                       Config::getData<double>("rotation_quaternion_x"),
+                                                       Config::getData<double>("rotation_quaternion_y"),
+                                                       Config::getData<double>("rotation_quaternion_z"));
+    Eigen::Vector3d vector = Eigen::Vector3d(Config::getData<double>("translation_x"),
+                                             Config::getData<double>("translation_y"),
+                                             Config::getData<double>("translation_z"));
+    Viewer::getInstance()->setInitPose(quaternion, vector, Config::getData<double>("timestamp"));
 
     Vo vo;
 
@@ -26,7 +33,13 @@ int main(int argc, char *argv[]) {
     std::cout << "Vo Stop! " << std::endl;
     std::cout << "heihei successfully!!! " << std::endl;
 
-    Viewer::getInstance()->writeFile("PNP5.txt");
+
+    // write odometer data
+    std::string write_file = Config::getData<std::string>("write_file");
+    if (write_file == "T") {
+        std::string file_name = Config::getData<std::string>("file_name");
+        Viewer::getInstance()->writeFile(file_name);
+    }
 
     return 0;
 

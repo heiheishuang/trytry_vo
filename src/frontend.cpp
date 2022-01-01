@@ -258,10 +258,16 @@ int Frontend::estimateEnoughMatches(std::shared_ptr<std::vector<cv::DMatch>> &ma
     Eigen::Vector3d t = Eigen::Vector3d::Identity();
 
     int inlines = 0;
-//    this->estimateRT_RANSAC(point_last, point_current, R, t);
-    this->estimateRT_PNP(matches, R, t);
-//    this->estimateRigid3D(point_last, point_current, R, t);
-//    this->estimateRT_BA(point_last, point_current, R, t);
+    std::string estimate_method = Config::getData<std::string>("estimate_pose");
+    if (estimate_method == "BA") {
+        this->estimateRT_BA(point_last, point_current, R, t);
+    } else if (estimate_method == "SVD") {
+        this->estimateRigid3D(point_last, point_current, R, t);
+    } else if (estimate_method == "SVD_RANSAC") {
+        this->estimateRT_RANSAC(point_last, point_current, R, t);
+    } else if (estimate_method == "PnP") {
+        this->estimateRT_PNP(matches, R, t);
+    }
 
     inlines = computeInlines(point_last, point_current, R, t);
 

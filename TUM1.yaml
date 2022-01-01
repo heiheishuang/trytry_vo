@@ -42,7 +42,6 @@ min_depth: 0.1
 max_depth: 10
 key_frame_num: 15
 errorThreshold: 10
-Vocabulary: /home/heihei/mySLAM/vocab_larger.yml.gz
 vocScores: 0.07
 
 #--------------------------------------------------------------------------------------------
@@ -57,6 +56,9 @@ match_size_threshold: 10
 # Reprojection Error
 reprojection_error_threshold: 0.15
 
+# Estimation pose using BA PnP SVD or RANSAC
+estimate_pose: PnP
+
 # Ransac
 ransac_max_iterators: 1000
 
@@ -67,3 +69,23 @@ number_optimize_frame: 5
 # Frame Parameters
 #--------------------------------------------------------------------------------------------
 match_distance_eta: 0.4
+
+#--------------------------------------------------------------------------------------------
+# System Parameters
+#--------------------------------------------------------------------------------------------
+# Topic name
+topic_name: PNP5
+
+# Init Pose
+rotation_quaternion_w: -0.3909
+rotation_quaternion_x: 0.8851
+rotation_quaternion_y: 0.2362
+rotation_quaternion_z: -0.0898
+translation_x: 1.3112
+translation_y: 0.8507
+translation_z: 1.5186
+timestamp: 1305031453.3595
+
+# Y: If you want to write odometer data in a file; N: If you don't want to write a file
+write_file: T
+file_name: PnP5.txt
