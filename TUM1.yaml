@@ -4,6 +4,7 @@
 # Dataset
 #--------------------------------------------------------------------------------------------
 data_set: /home/heihei/Downloads/rgbd_dataset_freiburg1_desk/
+ground_truth_path: /home/heihei/Downloads/rgbd_dataset_freiburg1_desk/
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!

@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     Config::getInstance()->setFileName("/home/heihei/slam_ws/src/trytry_vo/TUM1.yaml");
     Viewer::getInstance()->setTopicName("ground_truth");
 
-    std::string path = Config::getData<std::string>("data_set");
+    std::string path = Config::getData<std::string>("ground_truth_path");
 
     std::vector<double> time_stamps;
     std::vector<Eigen::Matrix4d> tfs;
