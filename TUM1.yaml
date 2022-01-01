@@ -87,6 +87,6 @@ translation_y: 0.8507
 translation_z: 1.5186
 timestamp: 1305031453.3595
 
-# Y: If you want to write odometer data in a file; N: If you don't want to write a file
+# T: If you want to write odometer data in a file; F: If you don't want to write a file
 write_file: T
 file_name: PnP5.txt

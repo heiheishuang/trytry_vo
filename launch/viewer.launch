@@ -1,6 +1,7 @@
 <launch>
     <node pkg = "trytry_vo" type = "trytry_vo_node" name="trytry_vo_node"/>
 
+    <node pkg = "trytry_vo" type = "ground_truth" name="ground_truth"/>
     <node pkg = "rviz" type = "rviz" name = "rviz" args="-d $(find trytry_vo)/rviz/viewer.rviz" />
 
 </launch>
